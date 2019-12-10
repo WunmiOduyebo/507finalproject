@@ -75,7 +75,7 @@ def get_health_data():
     current_url= baseurl+ healthurl
     nextpage=current_url
     health_list=[]
-    while counter < 10:
+    while counter < 2:
 
         nairaland = make_request_using_cache(nextpage)
         soup = BeautifulSoup(nairaland, "html.parser")
@@ -502,9 +502,8 @@ def process_command(command):
 
         command_split = command.split(' ')
         for item in command_split:
-            if 'mention' in item:
+            if 'disease' in item:
                 disease = item.split('=')[1]
-                print(disease)
                 mention_where = '''
                 WHERE Disease.Disease="''' + disease + '" '
 
@@ -512,48 +511,24 @@ def process_command(command):
         statement = mention_select  + mention_where
         print(statement)
         result= cur.execute(statement)
-        # print(result)
 
         mention_list = []
-        count_list = []
+        for tuple in result:
+            mention_list.append(tuple[0])
 
-        labels= mention_list
-        values= count_list
-        fig = {
-            'data':[{'values': values, 'labels': labels, 'type': 'pie'}],
-            'layout':{'title': 'Disease Distribtion'}
-        }
-        py.plot(fig, filename='pie_genre')
-        # trace = go.Pie(labels=labels, values=values)
-        # py.plot([trace], filename='genre_pie_chart')
+        mention_string=(" ").join(mention_list)
+        #----------Word Cloud for description
+        stopwords = set(STOPWORDS)
+        wordcloud = WordCloud(stopwords=stopwords, background_color="white").generate(mention_string)
 
-        # for tuple in result:
-        #     view_list.append(tuple[0])
-        #     count_list.append(tuple[1])
-        #
-        # data = [go.Bar(
-        #         x = view_list,
-        #         y = count_list
-        # )]
-        #
-        # layout = go.Layout(
-        #     title = 'List of Views'
-        # )
-        #
-        # fig = go.Figure(data=data, layout=layout)
-        # fig.show()
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.show()
+
         conn.commit()
         conn.close()
 
 
-        # view_string=(" ").join(view_list)
-        # #----------Word Cloud for description
-        # stopwords = set(STOPWORDS)
-        # wordcloud = WordCloud(stopwords=stopwords, background_color="white").generate(view_string)
-        #
-        # plt.imshow(wordcloud, interpolation='bilinear')
-        # plt.axis("off")
-        # plt.show()
 
     return result
 
